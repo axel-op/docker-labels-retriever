@@ -1,7 +1,5 @@
-FROM alpine:3.10
-
-COPY LICENSE README.md /
+FROM leifcr/alpine-curl-jq:latest
 
 COPY entrypoint.sh /entrypoint.sh
 
-ENTRYPOINT ["/entrypoint.sh"]
+CMD ["/bin/bash", "/entrypoint.sh"]

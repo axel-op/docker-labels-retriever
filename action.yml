@@ -1,12 +1,19 @@
-name: 'Container Action Template'
-description: 'Get started with Container actions'
-author: 'GitHub'
-inputs: 
-  myInput:
-    description: 'Input to use'
-    default: 'world'
+name: 'Docker Label Retriever'
+description: "Retrieves the value of a label from an image on Docker Hub without pulling it"
+author: 'axel-op'
+branding:
+  icon: 'tag'
+  color: 'blue'
+inputs:
+  image:
+    description: 'Docker image to inspect'
+    required: true
+  label:
+    description: 'Label to retrieve'
+    required: true
+outputs:
+  value:
+    description: 'Value associated to the given label'
 runs:
   using: 'docker'
   image: 'Dockerfile'
-  args:
-    - ${{ inputs.myInput }}
