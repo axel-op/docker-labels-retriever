@@ -9,19 +9,17 @@ jobs:
     steps:
       - uses: actions/checkout@v1
       - uses: ./
-        id: label
+        id: labels
         with:
           image: library/nginx:latest # random image with a label
-          label: maintainer
-      - run: echo "${{ steps.label.outputs.value }}"
+      - run: echo "${{ steps.labels.outputs.maintainer }}"
 
   without-tag:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
       - uses: ./
-        id: label
+        id: labels
         with:
           image: library/nginx
-          label: maintainer
-      - run: echo "${{ steps.label.outputs.value }}"
+      - run: echo "${{ steps.labels.outputs.maintainer }}"

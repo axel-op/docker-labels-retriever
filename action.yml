@@ -1,5 +1,5 @@
-name: 'Docker Label Retriever'
-description: "Retrieves the value of a label from an image on Docker Hub without pulling it"
+name: 'Docker Labels Retriever'
+description: "Retrieves labels from an image on Docker Hub without pulling it"
 author: 'axel-op'
 branding:
   icon: 'tag'
@@ -8,12 +8,6 @@ inputs:
   image:
     description: 'Docker image to inspect'
     required: true
-  label:
-    description: 'Label to retrieve'
-    required: true
-outputs:
-  value:
-    description: 'Value associated to the given label'
 runs:
   using: 'docker'
   image: 'Dockerfile'

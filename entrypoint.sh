@@ -1,10 +1,11 @@
 #!/usr/bin/env bash -l
 
 IMAGE="$INPUT_IMAGE"
-LABEL="$INPUT_LABEL"
 
-if [[ -z "$IMAGE" || -z "$LABEL" ]]; then
-    echo "You must provide the required inputs"
+# Checking and parsing the input
+
+if [[ -z "$IMAGE" ]]; then
+    echo "You must provide the image input"
     exit 1
 fi
 
@@ -20,6 +21,8 @@ fi
 echo "IMAGE_NAME=$IMAGE_NAME"
 echo "TAG=$TAG"
 
+# Getting the API token
+
 TOKEN=$(curl -s "https://auth.docker.io/token?scope=repository:${IMAGE_NAME}:pull&service=registry.docker.io" | jq -r '.token')
 
 if [[ -z "$TOKEN" || "$TOKEN" = "null" ]]; then
@@ -27,22 +30,25 @@ if [[ -z "$TOKEN" || "$TOKEN" = "null" ]]; then
     exit 1
 fi
 
+# Getting all the labels
+
 API_ADDRESS="https://registry-1.docker.io/v2"
 
 declare -a HEADERS=('-H' "Accept: application/vnd.docker.distribution.manifest.v2+json" '-H' "Authorization: Bearer $TOKEN")
 DIGEST=$(curl -s "${HEADERS[@]}" "${API_ADDRESS}/${IMAGE_NAME}/manifests/$TAG" | jq -r '.config.digest')
 
 if [[ -z "$DIGEST" || "$DIGEST" = "null" ]]; then
-    echo "The image '$INPUT_IMAGE' has not been found"
+    echo "The image '$IMAGE' has not been found"
     exit 1
 fi
 
-CONFIG=$(curl -s -L -H "Authorization: Bearer $TOKEN" "${API_ADDRESS}/${IMAGE_NAME}/blobs/$DIGEST")
-VALUE=$(jq -r ".config.Labels.$LABEL" <<< $CONFIG)
+LABELS_JSON=$(curl -s -L -H "Authorization: Bearer $TOKEN" "${API_ADDRESS}/${IMAGE_NAME}/blobs/$DIGEST" | jq -r ".config.Labels")
+KEYS=$(jq -r ". | keys[]" <<< $LABELS_JSON)
 
-if [[ "$VALUE" = "null" ]]; then
-    echo "The label '$LABEL' has not been found in the image's manifest"
-    exit 1
-fi
+# Setting outputs
 
-echo ::set-output name=value::"$VALUE"
+for KEY in $KEYS
+do
+    VALUE=$(jq -r ".$KEY" <<< $LABELS_JSON)
+    echo ::set-output name="$KEY"::"$VALUE"
+done
