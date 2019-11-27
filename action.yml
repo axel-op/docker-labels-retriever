@@ -1,13 +1,20 @@
 name: 'Docker Labels Retriever'
-description: "Retrieves labels from an image on Docker Hub without pulling it"
+description: "Retrieves labels from the metadata of an image on Docker Hub or GitHub Packages without pulling it"
 author: 'axel-op'
 branding:
   icon: 'tag'
   color: 'blue'
 inputs:
   image:
-    description: 'Docker image to inspect'
+    description: 'Docker image to inspect.'
     required: true
+  githubToken:
+    description: 'Token to use with GitHub Packages.'
+    required: false
+  registry:
+    description: "Registry of the image. Accepted values are 'docker-hub' and 'github-packages'."
+    required: false
+    default: 'docker-hub'
 runs:
   using: 'docker'
   image: 'Dockerfile'
