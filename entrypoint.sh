@@ -3,8 +3,10 @@
 IMAGE="$INPUT_IMAGE"
 TOKEN="$INPUT_GITHUBTOKEN"
 REGISTRY="$INPUT_REGISTRY"
+DOCKER_USERNAME="$INPUT_DOCKERHUBUSERNAME"
+DOCKER_PASSWORD="$INPUT_DOCKERHUBPASSWORD"
 
-# Checking and parsing the inputs
+# Parsing the image name
 
 if [[ -z "$IMAGE" ]]; then
     echo "You must provide the image input"
@@ -43,14 +45,24 @@ esac
 # Getting a token with Docker API
 
 if [[ "$REGISTRY" = "docker-hub" ]]; then
-    TOKEN=$(curl -s -f "https://auth.docker.io/token?scope=repository:${IMAGE_NAME}:pull&service=registry.docker.io" | jq -r '.token')
+    ADDRESS="https://auth.docker.io/token?scope=repository:${IMAGE_NAME}:pull&service=registry.docker.io"
+    ARGS=()
+    if [[ ! -z "$DOCKER_USERNAME" ]]; then
+        if [[ -z "$DOCKER_PASSWORD" ]]; then
+            echo "If you specify a Docker Hub username, you must also give the password or an access token"
+            exit 1
+        fi
+        ADDRESS+="&account=$DOCKER_USERNAME"
+        ARGS+=('-u' "${DOCKER_USERNAME}:${DOCKER_PASSWORD}")
+    fi
+    TOKEN=$(curl -sL "${ARGS[@]}" "$ADDRESS" | jq -r '.token')
 fi
 
 # Checking the token
 
 if [[ -z "$TOKEN" || "$TOKEN" = "null" ]]; then
     if [[ "$REGISTRY" = "github-packages" ]]; then
-        echo "The 'token' input is required when 'registry' is 'github-packages'"
+        echo "The 'githubToken' input is required when 'registry' is '$REGISTRY'"
     else
         echo "Unable to get a token to call the API"
     fi
@@ -59,27 +71,28 @@ fi
 
 # Getting all the labels
 
-declare -a HEADERS=('-H' "Accept: application/vnd.docker.distribution.manifest.v2+json" '-H' "Authorization: Bearer $TOKEN")
-DIGEST=$(curl -s -f "${HEADERS[@]}" "${API_ADDRESS}/${IMAGE_NAME}/manifests/$TAG" | jq -r '.config.digest')
+ADDRESS="${API_ADDRESS}/${IMAGE_NAME}/manifests/$TAG"
+HEADERS=('-H' "Accept: application/vnd.docker.distribution.manifest.v2+json" '-H' "Authorization: Bearer $TOKEN")
+DIGEST=$(curl -sL "${HEADERS[@]}" "$ADDRESS" | jq -r '.config.digest')
 
 if [[ -z "$DIGEST" || "$DIGEST" = "null" ]]; then
     echo "The image '$IMAGE' has not been found"
     exit 1
 fi
 
-LABELS_JSON=$(curl -s -f -L -H "Authorization: Bearer $TOKEN" "${API_ADDRESS}/${IMAGE_NAME}/blobs/$DIGEST" | jq -r ".config.Labels")
+ADDRESS="${API_ADDRESS}/${IMAGE_NAME}/blobs/$DIGEST"
+HEADERS=('-H' "Authorization: Bearer $TOKEN")
+LABELS=$(curl -sL "${HEADERS[@]}" "$ADDRESS" | jq -r '.config.Labels')
 
-if [[ -z "$LABELS_JSON" || "$LABELS_JSON" = "null" ]]; then
+if [[ -z "$LABELS" || "$LABELS" = "null" ]]; then
     echo "No label has been found"
     exit 0
 fi
 
-KEYS=$(jq -r ". | keys[]" <<< $LABELS_JSON)
-
 # Setting outputs
 
-for KEY in $KEYS
+for KEY in $(jq -r ". | keys[]" <<< $LABELS)
 do
-    VALUE=$(jq -r ".[\"$KEY\"]" <<< $LABELS_JSON)
+    VALUE=$(jq -r ".[\"$KEY\"]" <<< $LABELS)
     echo ::set-output name="$KEY"::"$VALUE"
 done

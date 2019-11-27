@@ -23,7 +23,7 @@ Here's an example of a workflow where the values of two labels, `version` and `m
             id: labels # this id will be reused below
             uses: axel-op/docker-labels-retriever@master
             with:
-              image: owner/repo/image:stable
+              image: owner/repo/image:tag
               registry: github-packages
               githubToken: ${{ secrets.GITHUB_TOKEN }}
 
@@ -43,6 +43,21 @@ Here's an example of a workflow where the values of two labels, `version` and `m
 
 ### Inputs
 
-* `image`: **required**. With Docker Hub the format is `repo/image_name`, with GitHub Packages it's `owner/repo/image_name`. You can add a specific tag. The `latest` tag will be used by default.
-* `githubToken`: **required with GitHub Packages**, even with public images. In most cases the [`GITHUB_TOKEN`](https://help.github.com/en/actions/automating-your-workflow-with-github-actions/authenticating-with-the-github_token) should be fine. Omit it with public images on Docker Hub. Private images on Docker Hub aren't supported yet.
-* `registry`: accepted values are [`github-registry`, `docker-hub`]. Defaults to `docker-hub`.
+* `registry`: **required**. Accepted values are:
+  * `docker-hub`
+  * `github-packages`
+
+* `image`: **required**. Format is:
+  * `namespace/repository` with Docker Hub
+  * `owner/repository/image_name` with GitHub Packages
+
+  You can add a specific tag. The tag `latest` will be used by default.
+
+#### With Docker Hub
+
+* `dockerHubUsername`: **required only for private images**. It must be the username of an account that has access to the image.
+* `dockerHubPassword`: **required only for private images**. It can be a password or an [access token](https://docs.docker.com/docker-hub/access-tokens/).
+
+#### With GitHub Packages
+
+* `githubToken`: **required**, even with public images. In most cases the [`GITHUB_TOKEN`](https://help.github.com/en/actions/automating-your-workflow-with-github-actions/authenticating-with-the-github_token) should be fine.
