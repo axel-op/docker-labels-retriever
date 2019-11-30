@@ -2,7 +2,7 @@
 
 # Docker labels retriever
 
-This action retrieves the values of [labels from the metadata of an image](https://docs.docker.com/config/labels-custom-metadata/) on Docker Hub or GitHub Packages by calling the Docker API. The image isn't actually pulled so it's very fast.
+This action retrieves the values of [labels from the metadata of an image](https://docs.docker.com/config/labels-custom-metadata/) on Docker Hub, GitHub Packages or Google Container Registry, by calling the Docker API. The image isn't actually pulled so it's very fast.
 
 ## Usage
 
@@ -21,11 +21,11 @@ Here's an example of a workflow where the values of two labels, `version` and `m
 
           - name: Check labels
             id: labels # this id will be reused below
-            uses: axel-op/docker-labels-retriever@master
+            uses: axel-op/docker-labels-retriever@v1.0.0
             with:
               image: owner/repo/image:tag
               registry: github-packages
-              githubToken: ${{ secrets.GITHUB_TOKEN }}
+              accessToken: ${{ secrets.GITHUB_TOKEN }}
 
           # You can then get the values
           - name: Another step
@@ -46,18 +46,29 @@ Here's an example of a workflow where the values of two labels, `version` and `m
 * `registry`: **required**. Accepted values are:
   * `docker-hub`
   * `github-packages`
+  * `gcr` (Google Container Registry)
 
 * `image`: **required**. Format is:
   * `namespace/repository` with Docker Hub
   * `owner/repository/image_name` with GitHub Packages
+  * `project_id/image` with Google Container Registry
 
   You can add a specific tag. The tag `latest` will be used by default.
 
 #### With Docker Hub
 
-* `dockerHubUsername`: **required only for private images**. It must be the username of an account that has access to the image.
-* `dockerHubPassword`: **required only for private images**. It can be a password or an [access token](https://docs.docker.com/docker-hub/access-tokens/).
+* `dockerHubUsername`: **required only for private images**. It must be the username of an account that can access the image. Omit it with public images.
+* `accessToken`: **required only for private images**. It can be a password or an [access token](https://docs.docker.com/docker-hub/access-tokens/). Omit it with public images.
 
 #### With GitHub Packages
 
-* `githubToken`: **required**, even with public images. In most cases the [`GITHUB_TOKEN`](https://help.github.com/en/actions/automating-your-workflow-with-github-actions/authenticating-with-the-github_token) should be fine.
+* `accessToken`: **required**, even with public images. In most cases the [`GITHUB_TOKEN`](https://help.github.com/en/actions/automating-your-workflow-with-github-actions/authenticating-with-the-github_token) should be fine.
+
+#### With Google Container Registry
+
+* `hostname`: **required**. Hostname of the image. Could be:
+  * gcr.io
+  * eu.gcr.io
+  * us.gcr.io
+  * asia.gcr.io
+* `accessToken`: **required only for private images**. It must be a JSON key of a [service account with sufficient privileges](https://support.google.com/cloud/answer/6158849?hl=fr#serviceaccounts). Omit it with public images.

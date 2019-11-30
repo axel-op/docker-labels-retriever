@@ -1,24 +1,24 @@
 name: "Docker Labels Retriever"
-description: "Inspects labels in the metadata of images on Docker Hub or GitHub Packages without pulling them"
+description: "Inspects labels of remote images on Docker Hub, GitHub Packages or Google Container Registry, without pulling them"
 author: "axel-op"
 branding:
   icon: "tag"
   color: "blue"
 inputs:
   registry:
-    description: "Registry of the image. Accepted values are 'docker-hub' and 'github-packages'."
+    description: "Registry of the image."
     required: true
   image:
     description: "Docker image to inspect."
     required: true
-  githubToken:
-    description: "Token to use with GitHub Packages."
+  accessToken:
+    description: "Token to use to authenticate."
     required: false
   dockerHubUsername:
     description: "Username of a Docker Hub account for private Docker Hub images."
     required: false
-  dockerHubPassword:
-    description: "Password or access token of the Docker Hub account if 'dockerHubUsername' is provided."
+  hostname:
+    description: "Hostname for Google Container Registry."
     required: false
 runs:
   using: "docker"
