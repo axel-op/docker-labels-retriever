@@ -126,10 +126,6 @@ if [[ -z "$LABELS" || "$LABELS" = "null" ]]; then
     exit 0
 fi
 
-# Setting outputs
+# Setting output
 
-for KEY in $(jq -r ". | keys[]" <<< $LABELS)
-do
-    VALUE=$(jq -r ".[\"$KEY\"]" <<< $LABELS)
-    echo ::set-output name="$KEY"::"$VALUE"
-done
+echo ::set-output name="LABELS"::"$LABELS"
